@@ -1,41 +1,86 @@
-Bîrleanu Teodor Matei 324 CA 
+# README - Tema 4: HTTP - Client REST
 
+## Descriere generală
+Această temă implementează un client REST utilizând funcționalități din laboratorul 9, în special funcțiile pentru crearea mesajelor POST, GET și DELETE. Deși checker-ul afișa diverse erori, toate comenzile au fost testate manual și funcționează corect.
 
-                                    README TEMA 4
-                                   HTTP - Client REST
+Biblioteca folosită pentru parsarea răspunsurilor serverului este **parson**, utilizând fișierele `parson.c` și `parson.h`. Am ales această bibliotecă datorită ușurinței de utilizare și a documentației clare. 
 
-        Am folosit ca schelet laboratorul 9 , in special functiile de creeare a mesajelor pentru
-    request urile de tip POST, GET, DELETE. Tin sa mentionez faptul ca checker ul dadea diferite 
-    erori insa executand manual toate comenzile realizate ele functioneaza.
-        Pentru a parsa raspunsurile de la server am folosit biblioteca utilizand fisierele "parson.c"
-    si "parson.h". Am ales parson intrucat mi s a parut mai usor de folosit si de asemenea am urmarit
-    cateva tutoriale pentru a intelege cum pot folosi functiile de baza pentru parsare.
-        Pentru a retine informatiile de autorizare am folosit o variabila globala in care am retinut
-    token ul JWT. La fiecare acces in biblioteca am actualizat acel token si l am prestat pentru a l
-    folosi in viitoarele mesaje catre server. De asemenea, alaturi de token am retinut si un cookie pentru
-    conectare care de asemenea era initializat la fiecare logare a utilizatorului pentru ca serverul sa stie
-    in urmatoarele mesaje faptul ca user ul este conectat.
-        Programul a fot elaborat in mare parte folosind cate o functie pentru fiecare comanda posibila. Prin
-    urmare, in main am citit comanda si am apelat functia pentru executarea acesteia. Daca nu este o comanda
-    valida voi printa un mesaj de "comanda necunoscuta".
-        La comanda de register am citit username ul si parola dupa care le am incaspulat intr un obiect JSON
-    (JSON_Object), aplcandu i functia "json_serialize_to_string" pentru a l incapsula in mesajul pe care l
-    vom trimite catre server. Am definit cateva macro uri pentru fiecare url folosit , pentru ip ul de host si portul pe care realizez conexiunea. Am folosit de asemenea functiile din fisierul helpers.c de receive/send catre server sau compute_message. Am deschis conexiunea am trimis mesajul catre server am primit raspuns dupa care am inchis conexiunea. Daca in raspuns gasesc mesajul "error" atunci printez un mesaj de eraore. In caz contrar, actiunea s a indeplinit cu succes afisand un mesaj pozitiv. La sfarsit, eliberez resursele folosite pentru a reprezente mesajele in stilul JSON.
-        Pentru functia de login am procedat asemanator functiei de register folosind metoda POST si url ul
-    din enuntul temei. De asemenea, am manipulat raspunsul server ului cu ajutorul functiilor "basic_extract_json_response" si "json_parse_string". Am tratat cazurile de eroare sau succes identic insa in cazul de succes am actualizat cookie ul sesiunii create. De asemenea am eliberat orice alt token JWT folosit anterior pentru aceesarea resurselor. La final am eliberat toate resursele alocate.
-        La functia "enter_library", am folosit acelasi sablon ca mai sus(compunere mesaj, deschidere
-    conexiune ,trimitere mesaj ,primire mesaj,inchidere conexiune). Daca raspunsul de la server este unul pozitiv atunci actulizez token ul JWT pentru a avea acces la resurse.
-        Pentru functia "get_books" am folosit acelasi sablon integran acel token in mesaj pentru ca server 
-    ul sa cunoasca faptul ca avem acces la resurse. In caz de succes am cautat in string ul primit "{" fapt ce maracheaza inceputul textului de tip JSON afisand astfel toata biblioteca.
-        La functia "add_book" am folosit aceeasi idee , am instantiat o variabila de tip JSON_Object careia
-    i am atribuit toate campurile necesare (author, title etc). Dupa aceasta, am realizat acelasi procedeu afisand mesaje specifice in functie de mesajul primit de la server.
-        Pentru functia "get_book", am personalizat url ul cu id ul cartii pe care vreau sa o afisez cu 
-    ajutorul functiei sprintf. Dupa aceasta,am realizat acelasi procedeu . In cazul raspunsului pozitiv, am folosit functiile "json_object_get_number" si "json_object_get_string" pentru a extrage datele cartii si a le afisa.
-        La functia "delete_book", am realizat ca la cea de "get_book" insa pentru compunerea mesajului 
-    pentru server am folosit functia "compute_delete_request". 
-        Pentru functia de logout am realizat acelasi sablon de compunere a mesajului si trimitere catre 
-    server. De asemenea, am marcat cu NULL cookie ul de sesiune si token ul JWT astefel asigurandu ma ca nu voi da acces unui utilizator care este deconectat.
-        In cadrul funciilor din request.c din cadrul laboratorului am adaguat in antetul lor si token ul
-    JWT pentru a l adaugat la constructia mesajului pentru server.
-        Am folosit 2 sleepdays!
-        Va multumesc pentru atentie!
+## Autorizare
+- **Token JWT**: Este stocat într-o variabilă globală și actualizat la fiecare acces în bibliotecă. Acesta este folosit pentru autorizarea mesajelor viitoare.
+- **Cookie-ul de sesiune**: Este inițializat la fiecare logare pentru a asigura recunoașterea utilizatorului de către server.
+
+## Structură generală
+- Fiecare comandă este implementată printr-o funcție dedicată.
+- **Main**: Citește comanda utilizatorului și apelează funcția corespunzătoare. Dacă comanda este invalidă, afișează mesajul „comandă necunoscută”.
+
+---
+
+## Funcționalități implementate
+
+### **Register**
+1. Se citesc `username` și `password` și se încorporează într-un obiect JSON (`JSON_Object`).
+2. Mesajul este trimis către server folosind metoda POST.
+3. Mesajul include:
+   - URL-ul (definit ca macro).
+   - JSON-ul serializat.
+4. În cazul unui răspuns negativ de la server, se afișează un mesaj de eroare. În caz contrar, se confirmă succesul.
+
+### **Login**
+- Procedură similară cu funcția de register.
+- Răspunsul serverului este procesat cu:
+  - `basic_extract_json_response`.
+  - `json_parse_string`.
+- În caz de succes:
+  - Se actualizează cookie-ul de sesiune.
+  - Token-ul JWT anterior este eliberat.
+
+### **Enter Library**
+- Se trimite o cerere către server pentru accesarea bibliotecii.
+- În caz de succes, se actualizează token-ul JWT pentru acces la resursele protejate.
+
+### **Get Books**
+- Se trimite o cerere GET către server.
+- Token-ul JWT este inclus în mesaj.
+- Dacă răspunsul este pozitiv:
+  - Se caută structura JSON în răspuns.
+  - Se afișează toate cărțile din bibliotecă.
+
+### **Add Book**
+- Se construiește un obiect JSON cu informațiile despre carte (`author`, `title` etc.).
+- Mesajul este trimis către server.
+- Se afișează mesaje în funcție de răspunsul primit.
+
+### **Get Book**
+- URL-ul este personalizat cu ID-ul cărții utilizând `sprintf`.
+- Dacă răspunsul este pozitiv, informațiile despre carte sunt extrase cu:
+  - `json_object_get_number`.
+  - `json_object_get_string`.
+
+### **Delete Book**
+- URL-ul este personalizat similar funcției *Get Book*.
+- Mesajul este construit cu `compute_delete_request`.
+
+### **Logout**
+- Se trimite o cerere către server.
+- Se resetează cookie-ul de sesiune și token-ul JWT pentru a preveni accesul unui utilizator deconectat.
+
+---
+
+## Detalii tehnice
+- Am folosit fișierele și funcțiile din laboratorul 9 pentru:
+  - Crearea cererilor (`compute_message`, `send_to_server`, `receive_from_server`).
+  - Parsarea răspunsurilor.
+- Am definit macro-uri pentru:
+  - URL-urile utilizate.
+  - IP-ul și portul host-ului.
+
+---
+
+## Observații
+- În funcțiile din `request.c`, am adăugat token-ul JWT în antetul mesajelor trimise către server.
+- Am folosit **2 zile de întârziere**.
+
+---
+
+## Mulțumiri
+Vă mulțumesc pentru atenție! Pentru întrebări sau sugestii, nu ezitați să mă contactați.
